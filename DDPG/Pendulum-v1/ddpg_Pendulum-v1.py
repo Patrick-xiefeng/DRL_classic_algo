@@ -1,17 +1,15 @@
-import math
 import random
-
 import gym
 import numpy as np
-
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
-from torch.distributions import Normal
-
 from IPython.display import clear_output
 import matplotlib.pyplot as plt
+from torch.utils.tensorboard import SummaryWriter
+
+writer = SummaryWriter("logs")
 
 
 # Use CUDA
@@ -188,7 +186,7 @@ def ddpg_update(batch_size,
         )
 
 
-env = NormalizedActions(gym.make("Pendulum-v0"))
+env = NormalizedActions(gym.make("Pendulum-v1"))
 ou_noise = OUNoise(env.action_space)
 
 state_dim = env.observation_space.shape[0]
@@ -242,10 +240,12 @@ while frame_idx < max_frames:
         episode_reward += reward
         frame_idx += 1
 
-        if frame_idx % max(1000, max_steps + 1) == 0:
-            plot(frame_idx, rewards)
+        # plot(frame_idx, rewards)
+        print(episode_reward)
+        writer.add_scalar('myscale', episode_reward, frame_idx)
 
         if done:
             break
 
     rewards.append(episode_reward)
+writer.close()
