@@ -13,7 +13,7 @@ conda install matplotlib
 3. The results of each algorithm can be found in 'logs' directory and can be seen in tensorboard.
 
 # Acknowledgement
-A large part of the code is borrowed from [XinJingHao/RL-algorithms-by-Pytorch]('https://github.com/XinJingHao/RL-Algorithms-by-Pytorch') and
+A large part of the code is borrowed from [XinJingHao/RL-algorithms-by-Pytorch](https://github.com/XinJingHao/RL-Algorithms-by-Pytorch) and
 [higgsfield/RL-Adventure-2](https://github.com/higgsfield/RL-Adventure-2).
 
 Thanks for their wonderful works.
