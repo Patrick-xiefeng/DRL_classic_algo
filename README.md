@@ -9,6 +9,7 @@ conda activate DRL
 conda install pytorch torchvision torchaudio cudatoolkit=10.2 -c pytorch
 conda install gym[all]
 conda install matplotlib
+conda install IPython
 ```
 3. The results of each algorithm can be found in 'logs' directory and can be seen in tensorboard.
 
