@@ -12,7 +12,9 @@ from torch.distributions import Normal
 
 from IPython.display import clear_output
 import matplotlib.pyplot as plt
-# matplotlib inline
+from torch.utils.tensorboard import SummaryWriter
+
+writer = SummaryWriter("logs")
 
 # Use CUDA
 use_cuda = torch.cuda.is_available()
@@ -150,9 +152,11 @@ while frame_idx < max_frames:
         state = next_state
         frame_idx += 1
 
-        if frame_idx % 1000 == 0:
-            test_rewards.append(np.mean([test_env() for _ in range(10)]))
-            plot(frame_idx, test_rewards)
+        # if frame_idx % 1000 == 0:
+        #     test_rewards.append(np.mean([test_env() for _ in range(10)]))
+        #     plot(frame_idx, test_rewards)
+        test_rewards.append(np.mean([test_env() for _ in range(10)]))
+        writer.add_scalar('myscale', test_rewards, frame_idx)
 
     next_state = torch.FloatTensor(next_state).to(device)
     _, next_value = model(next_state)
@@ -174,3 +178,4 @@ while frame_idx < max_frames:
     optimizer.step()
 
 test_env(True)
+writer.close()

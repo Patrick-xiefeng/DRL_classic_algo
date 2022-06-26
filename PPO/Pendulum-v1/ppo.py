@@ -12,7 +12,9 @@ from torch.distributions import Normal
 
 from IPython.display import clear_output
 import matplotlib.pyplot as plt
-# matplotlib inline
+from torch.utils.tensorboard import SummaryWriter
+
+writer = SummaryWriter("logs")
 
 # Use CUDA
 use_cuda = torch.cuda.is_available()
@@ -231,8 +233,8 @@ for i_episode in count():
         expert_traj.append(np.hstack([state, action]))
         num_steps += 1
 
-    print("episode:", i_episode, "reward:", total_reward)
-
+    # print("episode:", i_episode, "reward:", total_reward)
+    writer.add_scalar('myscale', total_reward, i_episode)
     if num_steps >= max_expert_num:
         break
 
@@ -241,3 +243,5 @@ print()
 print(expert_traj.shape)
 print()
 np.save("expert_traj.npy", expert_traj)
+
+writer.close()

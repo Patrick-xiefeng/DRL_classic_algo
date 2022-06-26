@@ -1,5 +1,6 @@
 import math
 import random
+import time
 
 import gym
 import numpy as np
@@ -12,7 +13,9 @@ from torch.distributions import Normal
 
 from IPython.display import clear_output
 import matplotlib.pyplot as plt
-# matplotlib inline
+from torch.utils.tensorboard import SummaryWriter
+writer = SummaryWriter("logs")
+
 
 # Use CUDA
 use_cuda = torch.cuda.is_available()
@@ -58,7 +61,7 @@ class NormalizedActions(gym.ActionWrapper):
         action = 2 * (action - low) / (high - low) - 1
         action = np.clip(action, low, high)
 
-        return actions
+        return action
 
 
 # Adding Gaussian Noise
@@ -243,11 +246,11 @@ while frame_idx < max_frames:
         state = next_state
         episode_reward += reward
         frame_idx += 1
-
-        if frame_idx % 1000 == 0:
-            plot(frame_idx, rewards)
+        writer.add_scalar('my_scale', episode_reward, frame_idx)
 
         if done:
             break
 
     rewards.append(episode_reward)
+
+writer.close()

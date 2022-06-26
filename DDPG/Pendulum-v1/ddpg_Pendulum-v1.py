@@ -213,10 +213,10 @@ policy_optimizer = optim.Adam(policy_net.parameters(), lr=policy_lr)
 
 value_criterion = nn.MSELoss()
 
-replay_buffer_size = 1000000
+replay_buffer_size = 100000
 replay_buffer = ReplayBuffer(replay_buffer_size)
 
-max_frames  = 12000
+max_frames  = 50000
 max_steps   = 500
 frame_idx   = 0
 rewards     = []
@@ -249,3 +249,4 @@ while frame_idx < max_frames:
 
     rewards.append(episode_reward)
 writer.close()
+
