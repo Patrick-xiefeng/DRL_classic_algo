@@ -18,8 +18,29 @@ writer = SummaryWriter("logs")
 use_cuda = torch.cuda.is_available()
 device = torch.device("cuda" if use_cuda else "cpu")
 
+# Normalize action space
+class NormalizedActions(gym.ActionWrapper):
 
-env = gym.make('Pendulum-v1')
+    def action(self, action):
+        low_bound = self.action_space.low
+        upper_bound = self.action_space.high
+
+        action = low_bound + (action + 1.0) * 0.5 * (upper_bound - low_bound)
+        action = np.clip(action, low_bound, upper_bound)
+
+        return action
+
+    def _reverse_action(self, action):
+        low_bound = self.action_space.low
+        upper_bound = self.action_space.high
+
+        action = 2 * (action - low_bound) / (upper_bound - low_bound) - 1
+        action = np.clip(action, low_bound, upper_bound)
+
+        return action
+
+
+env = NormalizedActions(gym.make('Pendulum-v1'))
 N_STATES = env.observation_space.shape[0]
 HIDDEN_SIZE = 15
 N_ACTIONS = 3  # action 9 data shape(1,)
@@ -124,40 +145,38 @@ dqn = DQN()
 
 print('\nCollecting experience...')
 cost = np.array(0)
-for i_episode in range(50000):
-    state = env.reset()
-    ep_r = 0
-    while True:
-        env.render()
-        action = dqn.choose_action(state)
 
-        # take action
-        next_state, reward, done, info = env.step(action)
+max_frames  = 50000
+max_steps   = 500
+frame_idx   = 0
+rewards     = []
+batch_size  = 128
+
+
+while frame_idx < max_frames:
+    state = env.reset()
+    episode_reward = 0
+
+    for step in range(max_steps):
+        # env.render()
+
+        action = dqn.choose_action(state)
+        next_state, reward, done, _ = env.step(action)
 
         cost = np.append(cost, reward)  # record the cost
         dqn.store_transition(state, action, reward, next_state)
-
-        ep_r += reward  # sum of reward
-        writer.add_scalar('myscale', ep_r, i_episode)
-        #         pendulum won't stop by it self. So I add a condition.
-        if abs(ep_r) > 1000:
-            done = True
+        episode_reward += reward
+        print(episode_reward)
+        writer.add_scalar('myscale', episode_reward, frame_idx)
         state = next_state
+
         if dqn.memory_counter > MEMORY_CAPACITY:
             dqn.learn()
-            if done:
-                print('Ep: ', i_episode,
-                      '| Ep_r: ', round(ep_r, 2))
+        frame_idx += 1
+
 
         if done:
             break
 
-x = np.arange(cost.size)
-fig, ax = plt.subplots(figsize=(8, 4))
-ax.plot(x, cost, 'b', label='Prediction')
-ax.legend(loc=2)
-ax.set_xlabel('act')
-ax.set_ylabel('reward')
-plt.show()
 writer.close()
 

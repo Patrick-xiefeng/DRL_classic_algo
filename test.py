@@ -1,8 +1,9 @@
-import time
+from torch.utils.tensorboard import SummaryWriter
 
-import gym
-env = gym.make('Taxi-v3')
-print(env.reset())
-print(env.action_space.n)
+writer = SummaryWriter("logs")
 
+for i in range(100):
+    writer.add_scalar("y=x",i,i)
+
+writer.close()
 
