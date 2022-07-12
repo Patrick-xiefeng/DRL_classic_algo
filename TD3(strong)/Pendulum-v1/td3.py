@@ -45,7 +45,7 @@ class ReplayBuffer:
 
 
 class NormalizedActions(gym.ActionWrapper):
-    def _action(self, action):
+    def action(self, action):
         low = self.action_space.low
         high = self.action_space.high
 
@@ -213,8 +213,8 @@ soft_update(policy_net, target_policy_net, soft_tau=1.0)
 
 value_criterion = nn.MSELoss()
 
-policy_lr = 1e-3
-value_lr  = 1e-3
+policy_lr = 3e-4
+value_lr  = 3e-4
 
 value_optimizer1 = optim.Adam(value_net1.parameters(), lr=value_lr)
 value_optimizer2 = optim.Adam(value_net2.parameters(), lr=value_lr)
@@ -224,7 +224,7 @@ policy_optimizer = optim.Adam(policy_net.parameters(), lr=policy_lr)
 replay_buffer_size = 1000000
 replay_buffer = ReplayBuffer(replay_buffer_size)
 
-max_frames  = 10000
+max_frames  = 50000
 max_steps   = 500
 frame_idx   = 0
 rewards     = []
@@ -246,8 +246,8 @@ while frame_idx < max_frames:
         state = next_state
         episode_reward += reward
         frame_idx += 1
-        writer.add_scalar('my_scale', episode_reward, frame_idx)
-
+        writer.add_scalar('reward', episode_reward, frame_idx)
+        print(episode_reward)
         if done:
             break
 

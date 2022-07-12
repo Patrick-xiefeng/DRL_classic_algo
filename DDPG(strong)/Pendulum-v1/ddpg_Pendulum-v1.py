@@ -205,8 +205,8 @@ for target_param, param in zip(target_value_net.parameters(), value_net.paramete
 for target_param, param in zip(target_policy_net.parameters(), policy_net.parameters()):
     target_param.data.copy_(param.data)
 
-value_lr = 1e-3
-policy_lr = 1e-4
+value_lr = 3e-4
+policy_lr = 3e-4
 
 value_optimizer = optim.Adam(value_net.parameters(), lr=value_lr)
 policy_optimizer = optim.Adam(policy_net.parameters(), lr=policy_lr)
@@ -242,7 +242,7 @@ while frame_idx < max_frames:
 
         # plot(frame_idx, rewards)
         print(episode_reward)
-        writer.add_scalar('myscale', episode_reward, frame_idx)
+        writer.add_scalar('reward', episode_reward, frame_idx)
 
         if done:
             break

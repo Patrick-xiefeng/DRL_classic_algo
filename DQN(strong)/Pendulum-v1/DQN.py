@@ -44,7 +44,7 @@ env = NormalizedActions(gym.make('Pendulum-v1'))
 N_STATES = env.observation_space.shape[0]
 HIDDEN_SIZE = 15
 N_ACTIONS = 3  # action 9 data shape(1,)
-LR = 0.01
+LR = 3e-4
 GAMMA = 0.9
 EPSILON = 0.9
 MEMORY_CAPACITY = 100000
@@ -167,7 +167,7 @@ while frame_idx < max_frames:
         dqn.store_transition(state, action, reward, next_state)
         episode_reward += reward
         print(episode_reward)
-        writer.add_scalar('myscale', episode_reward, frame_idx)
+        writer.add_scalar('reward', episode_reward, frame_idx)
         state = next_state
 
         if dqn.memory_counter > MEMORY_CAPACITY:

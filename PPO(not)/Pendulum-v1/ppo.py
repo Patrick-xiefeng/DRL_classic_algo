@@ -20,24 +20,44 @@ writer = SummaryWriter("logs")
 use_cuda = torch.cuda.is_available()
 device   = torch.device("cuda" if use_cuda else "cpu")
 
+class NormalizedActions(gym.ActionWrapper):
+    def action(self, action):
+        low = self.action_space.low
+        high = self.action_space.high
+
+        action = low + (action + 1.0) * 0.5 * (high - low)
+        action = np.clip(action, low, high)
+
+        return action
+
+    def _reverse_action(self, action):
+        low = self.action_space.low
+        high = self.action_space.high
+
+        action = 2 * (action - low) / (high - low) - 1
+        action = np.clip(action, low, high)
+
+        return action
+
 
 # Create Environments
-from common.multiprocessing_env import SubprocVecEnv
+# from common.multiprocessing_env import SubprocVecEnv
+#
+# num_envs = 16
 
-num_envs = 16
 env_name = "Pendulum-v1"
 
-def make_env():
-    def _thunk():
-        env = gym.make(env_name)
-        return env
+# def make_env():
+#     def _thunk():
+#         env = gym.make(env_name)
+#         return env
+#
+#     return _thunk
+#
+# envs = [make_env() for i in range(num_envs)]
+# envs = SubprocVecEnv(envs)
 
-    return _thunk
-
-envs = [make_env() for i in range(num_envs)]
-envs = SubprocVecEnv(envs)
-
-env = gym.make(env_name)
+env = NormalizedActions(gym.make(env_name))
 
 # Neural Network
 def init_weights(m):
@@ -67,7 +87,9 @@ class ActorCritic(nn.Module):
 
     def forward(self, x):
         value = self.critic(x)
+        print(value.shape)
         mu = self.actor(x)
+        print(mu.shape)
         std = self.log_std.exp().expand_as(mu)
         dist = Normal(mu, std)
         return dist, value
@@ -139,8 +161,8 @@ def ppo_update(ppo_epochs, mini_batch_size, states, actions, log_probs, returns,
             loss.backward()
             optimizer.step()
 
-num_inputs  = envs.observation_space.shape[0]
-num_outputs = envs.action_space.shape[0]
+num_inputs  = env.observation_space.shape[0]
+num_outputs = env.action_space.shape[0]
 
 #Hyper params:
 hidden_size      = 256
@@ -153,11 +175,11 @@ threshold_reward = -200
 model = ActorCritic(num_inputs, num_outputs, hidden_size).to(device)
 optimizer = optim.Adam(model.parameters(), lr=lr)
 
-max_frames = 15000
+max_frames = 50000
 frame_idx  = 0
 test_rewards = []
 
-state = envs.reset()
+state = env.reset()
 early_stop = False
 
 while frame_idx < max_frames and not early_stop:
@@ -175,7 +197,7 @@ while frame_idx < max_frames and not early_stop:
         dist, value = model(state)
 
         action = dist.sample()
-        next_state, reward, done, _ = envs.step(action.cpu().numpy())
+        next_state, reward, done, _ = env.step(action.cpu().numpy())
 
         log_prob = dist.log_prob(action)
         entropy += dist.entropy().mean()
@@ -195,6 +217,7 @@ while frame_idx < max_frames and not early_stop:
             test_reward = np.mean([test_env() for _ in range(10)])
             test_rewards.append(test_reward)
             plot(frame_idx, test_rewards)
+            writer.add_scalar('ppo', test_reward, frame_idx)
             if test_reward > threshold_reward: early_stop = True
 
     next_state = torch.FloatTensor(next_state).to(device)
@@ -234,7 +257,7 @@ for i_episode in count():
         num_steps += 1
 
     # print("episode:", i_episode, "reward:", total_reward)
-    writer.add_scalar('myscale', total_reward, i_episode)
+    # writer.add_scalar('myscale', total_reward, i_episode)
     if num_steps >= max_expert_num:
         break
 
