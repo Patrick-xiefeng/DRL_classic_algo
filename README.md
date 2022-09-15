@@ -8,6 +8,7 @@ conda create -n DRL
 conda activate DRL
 conda install pytorch torchvision torchaudio cudatoolkit=10.2 -c pytorch
 conda install gym[all]
+(or pip install gym==0.18.3)
 conda install matplotlib
 conda install IPython
 ```
