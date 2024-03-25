@@ -10,6 +10,8 @@ from torch.utils.tensorboard import SummaryWriter
 
 writer = SummaryWriter('logs')
 
+
+# fewf
 # Use CUDA
 use_cuda = torch.cuda.is_available()
 device = torch.device("cuda" if use_cuda else "cpu")
